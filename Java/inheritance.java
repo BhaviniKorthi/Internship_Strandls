@@ -36,7 +36,7 @@ class branch extends Student{
     }
 }
 
-public class Inheritance{
+public class inheritance{
     public static void main(String[] args){
         Student s = new Student("Bhavini", 20, "Gandhinagar", 39);
         s.details();

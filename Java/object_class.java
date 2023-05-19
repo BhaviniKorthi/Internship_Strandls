@@ -20,6 +20,15 @@ class Employee{
 }
 
 public class object_class{
+
+    static void staticMethod(){
+        System.out.println("Static method called");
+    }
+
+    public void publicMethod(){
+        System.out.println("Public method called");
+    }
+
     public static void main(String[] args) {
         Employee e1 = new Employee(12345);
         e1.name = "Rahul";
@@ -34,5 +43,11 @@ public class object_class{
         e1.write();
         e2.write();
 
+        System.out.println(".....................");
+
+        staticMethod();
+
+        object_class obj = new object_class();
+        obj.publicMethod();
     }
 }
