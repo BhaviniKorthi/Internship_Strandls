@@ -1,16 +1,29 @@
-class outer{
-    int a = 100;
-    class inner{
-        int b = 200;
+// Abstract class
+abstract class Animal {
+    // Abstract method (does not have a body)
+    public abstract void animalSound();
+    // Regular method
+    public void sleep() {
+      System.out.println("Zzz");
     }
-}
-
-public class practice {
-    public static void main(String args[]){
-        outer out = new outer();
-        outer.inner in = out.new inner();
-        System.out.println(out.a);  
-        System.out.println(in.b);
-        System.out.println(out.a + in.b);
+  }
+  
+  // Subclass (inherit from Animal)
+  class Pig extends Animal {
+    public void animalSound() {
+      // The body of animalSound() is provided here
+      System.out.println("The pig says: wee wee");
     }
-}
+  }
+  
+  class practice {
+    public static void main(String[] args) {
+      Pig myPig = new Pig(); // Create a Pig object
+      myPig.animalSound();
+      myPig.sleep();
+      int x = 'a';
+      System.out.println(x);
+      System.out.println(10/0);
+      System.out.println("Hello World");
+    }
+  }
