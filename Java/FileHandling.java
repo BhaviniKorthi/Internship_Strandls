@@ -1,4 +1,4 @@
-import java.io.File;
+import java.io.*;
 import java.io.IOException; 
 
 public class FileHandling {
@@ -6,7 +6,8 @@ public class FileHandling {
         try{
             File f = new File("test.txt");
             boolean x = f.createNewFile();
-            System.out.println("x:"+ x);
+            boolean y = f.delete();
+            System.out.println(x + " " + y);
         }
         catch(IOException e){
             System.out.println("Exception occured..."+e);
@@ -19,6 +20,17 @@ public class FileHandling {
         catch(IOException e){
             System.out.println("Exception occured..."+e);
         }
+
+        try{
+            FileWriter Write = new FileWriter("test1.txt");
+            Write.write("Hello World");
+            Write.close();
+             
+        }catch(IOException e){
+            System.out.println("Exception occured..."+e);
+        }
+        File f2 = new File("test1.txt");
+        System.out.println("Length of file is: "+f2.length()+" bytes");
        
     }
 }
