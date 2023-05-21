@@ -1,4 +1,4 @@
-import javax.sound.midi.Soundbank;
+
 
 public class SimpleExceptions {
 
@@ -11,8 +11,11 @@ public class SimpleExceptions {
             System.out.println("Ending try block");
 
         }
-        catch (Exception e){
-            System.out.println("Exception occured...");
+        catch (ArithmeticException e){
+            System.out.println("Exception occured..."+e);
+        }
+        finally{
+            System.out.println("Finally block");
         }
         System.out.println("Line2");
     }
