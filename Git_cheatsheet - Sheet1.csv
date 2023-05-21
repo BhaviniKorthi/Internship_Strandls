@@ -2,8 +2,8 @@
 "$ git config --global user.email ""email ID""",
 $ git config -l,
 $ git config --global --unset user.username,
-$ git rm --chached test1.py,Remove the test1.py from added list
-$ git rm -r --chached .,removing all the files present in the list
+$ git rm --cached test1.py,Remove the test1.py from added list
+$ git rm -r --cached .,removing all the files present in the list
 $ git add -A,to stage all the changes including the subdirectories
 "git commit -m ""comment""",
 git log ,to get the commit details
@@ -17,13 +17,15 @@ git add README.md
 git commit -m ""first commit""
 git branch -M main
 git remote add origin https://github.com/BhaviniKorthi/practice_git.git
-git push -u origin main",
+git push -u origin main
+",
 "…or push an existing repository from the command line
 git remote add origin https://github.com/BhaviniKorthi/practice_git.git
 git branch -M main
 git push -u origin main",
 git branch feature-a,to create another branch
-"git checkout feature-a",change to feature-a branch
+"git checkout feature-a
+",change to feature-a branch
 git checkout -,go to the previous branch
 git branch -a,to see all the branches
 git branch -D branch_name,delete a particular branch
