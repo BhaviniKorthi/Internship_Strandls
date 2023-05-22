@@ -1,3 +1,4 @@
+
 import java.util.*;
 
 public class ObjectClass {
@@ -18,3 +19,22 @@ public class ObjectClass {
         System.out.println(x.getClass().getName());
     }
 }
+
+
+// class Student{
+//     String name;
+//     int rollno; 
+// }
+
+// public class ObjectClass{
+
+//     public static void main(String[] args){
+//         Student s1 = new Student();
+//         Student s2 = new Student();
+//         s1.name = "John";
+//         s1.rollno = 2;
+       
+//         System.out.println(s1.toString());
+//         System.out.println(s2);
+//     }
+// }
