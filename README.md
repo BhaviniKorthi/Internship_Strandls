@@ -1,12 +1,8 @@
 # Internship_Strandls
 
-## Git
+Contains details on practice and work related to my internship at [Strand Life Sciences](https://strandls.com/)
 
-- 19/5/2023:  Practiced git and made a cheat sheet
+## My Practice
 
-
-## MySQL
-
-User name : @user_purpose1997
-
-
+1. Git & GitHub: May 19, 2023 - Practiced git and made a cheat sheet
+2. MySQL: https://www.hackerrank.com/user_purpose1997
