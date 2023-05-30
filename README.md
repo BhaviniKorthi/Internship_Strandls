@@ -12,4 +12,3 @@ Contains details on practice and work related to my internship at [Strand Life S
 
 1. Git & GitHub: May 19, 2023 - Practiced git and made a cheat sheet
 2. MySQL: https://www.hackerrank.com/user_purpose1997
-3. 
