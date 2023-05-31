@@ -2,4 +2,5 @@
 
 -- SELECT variant_hash from variant_hashes;
 
-SELECT *  FROM variants;
+-- SELECT *  FROM variants;
+SELECT  variant_hash, MD5(variant_info) FROM variants WHERE variant_info = "Variant 5";
