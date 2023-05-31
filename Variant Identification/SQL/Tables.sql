@@ -10,9 +10,9 @@ CREATE TABLE variants (
 );
 
 CREATE TABLE variant_hashes (
-    variant_hash VARBINARY(255),
+    variant_hash VARCHAR(255),
     variant_id INT,
-    PRIMARY KEY (variant_id)
+    PRIMARY KEY (variant_hash)
     
 );
 

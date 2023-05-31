@@ -30,7 +30,7 @@ def get_variant():
         except ValueError:
             return jsonify({'error': 'Invalid variant ID'})
 
-        query = "SELECT CAST(AES_DECRYPT(variant_hash, 'encryption_key') AS CHAR) AS info FROM variant_hashes WHERE variant_id = %s"
+        query = "SELECT variant_info AS info FROM variants WHERE variant_id  = %s"
         db_cursor = db_connection.cursor()
         db_cursor.execute(query, (variant_id,))
         result = db_cursor.fetchone()
@@ -42,7 +42,7 @@ def get_variant():
     elif 'variant_info' in request.args:
         variant_info = request.args.get('variant_info')
 
-        query = "SELECT variant_id FROM variants WHERE variant_info = %s"
+        query = "SELECT variant_id FROM variant_hashes WHERE variant_hash = MD5(%s)"
         db_cursor = db_connection.cursor()
         db_cursor.execute(query, (variant_info,))
         result = db_cursor.fetchone()
