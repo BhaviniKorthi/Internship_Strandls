@@ -6,7 +6,8 @@ Contains details on practice and work related to my internship at [Strand Life S
 
 1. Internship project ideas: https://docs.google.com/document/d/1bC6LI_Jpktj3MDpT40zK03Y4vxjf-xNzmuAQE0DeliQ/edit#heading=h.k1uh6cezvzl0
 2. Details on variant identification service: https://docs.google.com/document/d/1ITBjTGb6lggWWvQJixW0MuLTN7CmB-WjGpxGEHnMGz4/edit
-3. Hashing alternatives: https://docs.google.com/document/d/1ITBjTGb6lggWWvQJixW0MuLTN7CmB-WjGpxGEHnMGz4/edit
+3. Documentation: https://docs.google.com/document/d/1MtUNjfo8M8Md9Ys0nFBT_mXQU81rhwJftwGXLdqqcQA/edit?usp=sharing
+
 
 ## My Practice
 
