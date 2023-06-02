@@ -1,8 +1,8 @@
 show databases;
 -- DROP database variant_db;
--- CREATE DATABASE variant_db;
+CREATE DATABASE variant_db;
 USE variant_db;
-DROP TABLE variants;
+-- DROP TABLE variants;
 -- DROP TABLE variant_hashes;
 CREATE TABLE variants (
     variant_id INT PRIMARY KEY AUTO_INCREMENT,
