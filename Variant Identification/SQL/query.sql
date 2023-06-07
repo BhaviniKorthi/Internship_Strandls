@@ -1,7 +1,18 @@
--- Select variant_hash from variant_hashes where variant_id = 7;
-
--- SELECT variant_hash from variant_hashes;
 use variant_db;
-SELECT *  FROM variants;
--- SELECT  variant_id, variant_info  FROM variants WHERE variant_hash = MD5("Variant 5");
--- INSERT INTO variants (variant_info, variant_hash) VALUES ("Variant 1000", MD5("Variant 5"));
+
+SELECT variant_id
+FROM variants
+WHERE variant_info = JSON_OBJECT(
+    'name', 'Variant 1',
+    'description', 'Description for Variant 1'
+);
+SELECT variant_id FROM variants WHERE variant_hash = MD5(JSON_OBJECT(
+    'name', 'Variant 1',
+    'description', 'Description for Variant 1'
+));
+
+
+select * from variants where variant_hash = "1b23b7287201c5b5792b6ce7b4129784";
+
+select * from variants;
+-- select variant_id, variant_hash from variants;
