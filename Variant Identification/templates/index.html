@@ -46,17 +46,22 @@
             border: none;
             cursor: pointer;
         }
+
+        .message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <h1>Get Variant Information</h1>
     <div class="forms-container">
-        <form action="/variant" method="get">
+        <form action="/variant" method="GET">
             <label for="variant_id">Variant ID:</label>
             <input type="text" id="variant_id" name="variant_id" placeholder="Enter Variant ID">
             <input type="submit" value="Get Variant Info">
         </form>
-        <form action="/variant" method="get">
+        <form action="/variant" method="GET">
             <label for="variant_info">Variant Info:</label>
             <input type="text" id="variant_info" name="variant_info" placeholder="Enter Variant Info">
             <input type="submit" value="Get Variant ID">
@@ -64,10 +69,16 @@
     </div>
 
     <h1 style="margin-bottom: 0px;">Add Variant Information</h1>
-    <form action="/variant" method="get">
+    <form action="/variant/add" method="POST">
         <label for="add_entry">Add Info:</label>
         <input type="text" id="add_entry" name="add_entry" placeholder="Enter Variant Info">
         <input type="submit" value="Add Variant Info">
     </form>
+
+    <div class="message">
+        {% if Message %}
+            {{ Message }}
+        {% endif %}
+    </div>
 </body>
 </html>

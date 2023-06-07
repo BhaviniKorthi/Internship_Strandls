@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import mysql.connector
+import json
 
 app = Flask(__name__)
 
@@ -13,9 +14,103 @@ config = {
 
 db_connection = mysql.connector.connect(**config)
 
+
+class VariantHandler:
+    def __init__(self, db_connection):
+        self.db_connection = db_connection
+
+    def get_variant_by_id(self, variant_id):
+        query = "SELECT variant_info AS info FROM variants WHERE variant_id = %s"
+        db_cursor = self.db_connection.cursor(dictionary=True)
+        db_cursor.execute(query, (variant_id,))
+        result = db_cursor.fetchone()
+        if result:
+            variant_info = result['info']
+            return variant_info
+        else:
+            return None
+
+    def get_variant_by_info(self, variant_info):
+        query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
+        db_cursor = self.db_connection.cursor(dictionary=True)
+        db_cursor.execute(query, (variant_info,))
+        results = db_cursor.fetchall()
+
+        if results:
+            if len(results) == 1:
+                variant_id = results[0]['variant_id']
+                return variant_id
+            elif len(results) > 1:
+                for result in results:
+                    variant_id = result['variant_id']
+                    query = "SELECT variant_info FROM variants WHERE variant_id = %s"
+                    db_cursor.execute(query, (variant_id,))
+                    fetched_variant_info = db_cursor.fetchone()
+                    if fetched_variant_info and fetched_variant_info['variant_info'] == variant_info:
+                        return variant_id
+
+        return None
+
+    def add_variant(self, variant_info):
+        variant_info_str = json.dumps(variant_info)  # Convert variant_info to JSON string
+        query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
+        db_cursor = self.db_connection.cursor(dictionary=True)
+        db_cursor.execute(query, (variant_info_str,))
+        result = db_cursor.fetchone()
+
+        if result:
+            variant_id = result['variant_id']
+            return variant_id
+        else:
+            insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, MD5(%s))"
+            db_cursor.execute(insert_query, (variant_info_str, variant_info_str))
+            self.db_connection.commit()
+            variant_id = db_cursor.lastrowid
+            return variant_id
+
+
+class VariantAPI:
+    def __init__(self, variant_handler):
+        self.variant_handler = variant_handler
+
+    def get_variant(self, variant_id):
+        variant_info = self.variant_handler.get_variant_by_id(variant_id)
+        if variant_info:
+            return render_template('variant.html', variant_id=variant_id, variant_info=variant_info,
+                                   Message="Variant ID found")
+        else:
+            return jsonify({'error': 'Variant ID not found'})
+
+    def find_variant(self, variant_info):
+        variant_id = self.variant_handler.get_variant_by_info(variant_info)
+        if variant_id:
+            return render_template('variant.html', variant_id=variant_id, variant_info=variant_info,
+                                   Message="Variant info found")
+        else:
+            return jsonify({'error': 'Variant info not found'})
+
+    def add_variant(self, variant_info):
+        try:
+            variant_info = json.loads(variant_info)
+        except json.JSONDecodeError:
+            return render_template('variant.html', Message="Error: Input is not valid JSON")
+
+        if variant_info:
+            variant_id = self.variant_handler.add_variant(variant_info)
+            return render_template('variant.html', variant_id=variant_id, variant_info=variant_info,
+                                   Message="Variant info added successfully")
+        else:
+            return render_template('variant.html', Message="Error: Input cannot be empty")
+
+
+variant_handler = VariantHandler(db_connection)
+variant_api = VariantAPI(variant_handler)
+
+
 @app.route('/')
 def home_page():
     return render_template('index.html')
+
 
 @app.route('/variant', methods=['GET'])
 def get_variant():
@@ -26,85 +121,20 @@ def get_variant():
         except ValueError:
             return jsonify({'error': 'Invalid variant ID'})
 
-        query = "SELECT variant_info AS info FROM variants WHERE variant_id = %s"
-        db_cursor = db_connection.cursor(dictionary=True)
-        db_cursor.execute(query, (variant_id,))
-        result = db_cursor.fetchone()
-        print(result)
-        if result:
-            variant_info = result['info']
-            return render_template('variant.html', variant_id=variant_id, variant_info=variant_info, Message="Variant ID found")
-        else:
-            return jsonify({'error': 'Variant ID not found'})
-    # elif 'variant_info' in request.args:
-    #     variant_info = request.args.get('variant_info')
-
-    #     query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
-    #     db_cursor = db_connection.cursor(dictionary=True)
-    #     db_cursor.execute(query, (variant_info,))
-    #     result = db_cursor.fetchone()
-    #     if result:
-    #         variant_id = result['variant_id']
-    #         return render_template('variant.html', variant_id=variant_id, variant_info=variant_info, Message="Variant info found")
-    #     else:
-    #         return jsonify({'error': 'GET: Variant info not found'})
-        
+        return variant_api.get_variant(variant_id)
 
     elif 'variant_info' in request.args:
         variant_info = request.args.get('variant_info')
-
-        query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
-        db_cursor = db_connection.cursor(dictionary=True)
-        db_cursor.execute(query, (variant_info,))
-        results = db_cursor.fetchall()
-        if results :
-
-            if len(results) == 1:
-                variant_id = results[0]['variant_id']
-                return render_template('variant.html', variant_id=variant_id, variant_info=variant_info, Message="Variant info found")
-            elif len(results) > 1:
-                for result in results:
-                    variant_id = result['variant_id']
-                    query = "SELECT variant_info FROM variants WHERE variant_id = %s"
-                    db_cursor.execute(query, (variant_id,))
-                    fetched_variant_info = db_cursor.fetchone()
-                    if fetched_variant_info and fetched_variant_info['variant_info'] == variant_info:
-                        return render_template('variant.html', variant_id=variant_id, variant_info=variant_info, Message="Variant info found")
-                        # matching_variant_ids.append(variant_id)
-
-                return jsonify({'error': 'variant info not found'})
-
-            # if matching_variant_ids:
-            #     # Handle the case when multiple variant IDs match the variant information
-            #     if len(matching_variant_ids) == 1:
-            #         variant_id = matching_variant_ids[0]
-            #         return render_template('variant.html', variant_id=variant_id, variant_info=variant_info, Message="Variant info found")
-                
-        else:
-            return jsonify({'error': 'Variant info not found'})
-
-   
-    elif 'add_entry' in request.args:
-        variant_info = request.args['add_entry']
-        if variant_info:
-            query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
-            db_cursor = db_connection.cursor(dictionary=True)
-            db_cursor.execute(query, (variant_info,))
-            result = db_cursor.fetchone()
-            if result:
-                variant_id = result['variant_id']
-                return render_template('variant.html', variant_id=variant_id, variant_info=variant_info, Message="Variant info already exists")
-            else:
-                insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, MD5(%s))"
-                db_cursor.execute(insert_query, (variant_info, variant_info))
-                db_connection.commit()
-                variant_id = db_cursor.lastrowid
-                return render_template('variant.html', variant_id=variant_id, variant_info=variant_info, Message="Variant info added successfully")
-        else:
-            return render_template('variant.html', Message="Error: Input cannot be empty")
+        return variant_api.find_variant(variant_info)
 
     else:
-        return jsonify({'error': 'Add: No variant_info provided'})
+        return jsonify({'error': 'No variant_info provided'})
+
+
+@app.route('/variant/add', methods=['POST'])
+def add_entry():
+    variant_info = request.form.get('add_entry')
+    return variant_api.add_variant(variant_info)
 
 
 if __name__ == '__main__':
