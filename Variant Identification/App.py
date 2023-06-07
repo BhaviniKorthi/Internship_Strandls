@@ -60,17 +60,22 @@ class VariantHandler:
         insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, MD5(%s))"
         db_cursor = self.db_connection.cursor(dictionary=True)
         db_cursor.execute(check_query, (variant_info_str,))
-        result = db_cursor.fetchone()
-        
+        result = db_cursor.fetchall()
 
         if result:
-            variant_id = result['variant_id']
-            return variant_id, "already exists"
-        else:
-            db_cursor.execute(insert_query, (variant_info_str, variant_info_str))
-            self.db_connection.commit()
-            variant_id = db_cursor.lastrowid
-            return variant_id, "added"
+            for row in result:
+                variant_id = row['variant_id']
+                collision_query = "SELECT variant_info FROM variants WHERE variant_id = %s"
+                db_cursor.execute(collision_query, (variant_id,))
+                fetched_variant_info = db_cursor.fetchone()
+                if fetched_variant_info and json.loads(fetched_variant_info['variant_info']) == variant_info:
+                    return variant_id, "already exists"
+
+        db_cursor.execute(insert_query, (variant_info_str, variant_info_str))
+        self.db_connection.commit()
+        variant_id = db_cursor.lastrowid
+        return variant_id, "added"
+
 
 
 
