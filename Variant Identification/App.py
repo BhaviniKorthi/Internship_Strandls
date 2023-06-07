@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import mysql.connector
 import json
+import hashlib
 
 app = Flask(__name__)
 
@@ -51,22 +52,28 @@ class VariantHandler:
 
         return None
 
+
     def add_variant(self, variant_info):
         variant_info_str = json.dumps(variant_info)  # Convert variant_info to JSON string
-        query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
+
+        check_query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
+        insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, MD5(%s))"
         db_cursor = self.db_connection.cursor(dictionary=True)
-        db_cursor.execute(query, (variant_info_str,))
+        db_cursor.execute(check_query, (variant_info_str,))
         result = db_cursor.fetchone()
+        
 
         if result:
             variant_id = result['variant_id']
-            return variant_id
+            return variant_id, "already exists"
         else:
-            insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, MD5(%s))"
             db_cursor.execute(insert_query, (variant_info_str, variant_info_str))
             self.db_connection.commit()
             variant_id = db_cursor.lastrowid
-            return variant_id
+            return variant_id, "added"
+
+
+
 
 
 class VariantAPI:
@@ -96,9 +103,9 @@ class VariantAPI:
             return render_template('variant.html', Message="Error: Input is not valid JSON")
 
         if variant_info:
-            variant_id = self.variant_handler.add_variant(variant_info)
+            variant_id , msg = self.variant_handler.add_variant(variant_info)
             return render_template('variant.html', variant_id=variant_id, variant_info=variant_info,
-                                   Message="Variant info added successfully")
+                                   Message=msg)
         else:
             return render_template('variant.html', Message="Error: Input cannot be empty")
 
