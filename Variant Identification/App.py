@@ -52,7 +52,6 @@ class VariantHandler:
 
         return None
 
-
     def add_variant(self, variant_info):
         variant_info_str = json.dumps(variant_info)  # Convert variant_info to JSON string
 
@@ -77,10 +76,6 @@ class VariantHandler:
         return variant_id, "added"
 
 
-
-
-
-
 class VariantAPI:
     def __init__(self, variant_handler):
         self.variant_handler = variant_handler
@@ -102,13 +97,8 @@ class VariantAPI:
             return jsonify({'error': 'Variant info not found'})
 
     def add_variant(self, variant_info):
-        try:
-            variant_info = json.loads(variant_info)
-        except json.JSONDecodeError:
-            return render_template('variant.html', Message="Error: Input is not valid JSON")
-
         if variant_info:
-            variant_id , msg = self.variant_handler.add_variant(variant_info)
+            variant_id, msg = self.variant_handler.add_variant(variant_info)
             return render_template('variant.html', variant_id=variant_id, variant_info=variant_info,
                                    Message=msg)
         else:
@@ -145,8 +135,20 @@ def get_variant():
 
 @app.route('/variant/add', methods=['POST'])
 def add_entry():
-    variant_info = request.form.get('add_entry')
-    return variant_api.add_variant(variant_info)
+    if request.content_type == 'application/json':
+        variant_info = request.get_json()
+    else:
+        variant_info = request.form.get('add_entry')
+
+        try:
+            variant_info = json.loads(variant_info)
+        except json.JSONDecodeError:
+            return render_template('variant.html', Message="Error: Input is not valid JSON")
+
+    if variant_info is not None:
+        return variant_api.add_variant(variant_info)
+    else:
+        return render_template('variant.html', Message="Error: Input cannot be empty")
 
 
 if __name__ == '__main__':
