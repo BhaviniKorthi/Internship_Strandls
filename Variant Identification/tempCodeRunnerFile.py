@@ -31,10 +31,11 @@ class VariantHandler:
         else:
             return None
 
-    def get_variant_by_info(self, variant_info):
+    def get_variant_by_info(self, variant_info):  #need to be fixed
+        variant_info_str = json.dumps(variant_info) 
         query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
         db_cursor = self.db_connection.cursor(dictionary=True)
-        db_cursor.execute(query, (variant_info,))
+        db_cursor.execute(query, (variant_info_str,))
         results = db_cursor.fetchall()
 
         if results:
@@ -47,14 +48,13 @@ class VariantHandler:
                     query = "SELECT variant_info FROM variants WHERE variant_id = %s"
                     db_cursor.execute(query, (variant_id,))
                     fetched_variant_info = db_cursor.fetchone()
-                    if fetched_variant_info and fetched_variant_info['variant_info'] == variant_info:
+                    if fetched_variant_info and json.loads(fetched_variant_info['variant_info']) == variant_info:
                         return variant_id
 
         return None
 
-
     def add_variant(self, variant_info):
-        variant_info_str = json.dumps(variant_info)  # Convert variant_info to JSON string
+        variant_info_str = json.dumps(variant_info) 
 
         check_query = "SELECT variant_id FROM variants WHERE variant_hash = MD5(%s)"
         insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, MD5(%s))"
@@ -75,10 +75,6 @@ class VariantHandler:
         self.db_connection.commit()
         variant_id = db_cursor.lastrowid
         return variant_id, "added"
-
-
-
-
 
 
 class VariantAPI:
@@ -102,13 +98,8 @@ class VariantAPI:
             return jsonify({'error': 'Variant info not found'})
 
     def add_variant(self, variant_info):
-        try:
-            variant_info = json.loads(variant_info)
-        except json.JSONDecodeError:
-            return render_template('variant.html', Message="Error: Input is not valid JSON")
-
         if variant_info:
-            variant_id , msg = self.variant_handler.add_variant(variant_info)
+            variant_id, msg = self.variant_handler.add_variant(variant_info)
             return render_template('variant.html', variant_id=variant_id, variant_info=variant_info,
                                    Message=msg)
         else:
@@ -124,19 +115,30 @@ def home_page():
     return render_template('index.html')
 
 
-@app.route('/variant', methods=['GET'])
-def get_variant():
-    if 'variant_id' in request.args:
-        variant_id = request.args.get('variant_id')
+@app.route('/variant/id', methods=['POST'])
+def get_variant_info():
+    if 'variant_id' in request.form:
+        variant_id = request.form.get('variant_id')
         try:
             variant_id = int(variant_id)
         except ValueError:
             return jsonify({'error': 'Invalid variant ID'})
 
         return variant_api.get_variant(variant_id)
+    
+    else :
 
-    elif 'variant_info' in request.args:
-        variant_info = request.args.get('variant_info')
+        return jsonify({'error': 'No variant_info provided'})
+    
+
+
+
+    
+@app.route('/variant/info', methods=['POST'])
+def get_variant_if():
+    if 'variant_info' in request.form:
+
+        variant_info = request.form.get('variant_info')
         return variant_api.find_variant(variant_info)
 
     else:
@@ -145,8 +147,20 @@ def get_variant():
 
 @app.route('/variant/add', methods=['POST'])
 def add_entry():
-    variant_info = request.form.get('add_entry')
-    return variant_api.add_variant(variant_info)
+    if request.content_type == 'application/json':
+        variant_info = request.get_json()
+    else:
+        variant_info = request.form.get('add_entry')
+
+        try:
+            variant_info = json.loads(variant_info)
+        except json.JSONDecodeError:
+            return render_template('variant.html', Message="Error: Input is not valid JSON")
+
+    if variant_info is not None:
+        return variant_api.add_variant(variant_info)
+    else:
+        return render_template('variant.html', Message="Error: Input cannot be empty")
 
 
 if __name__ == '__main__':
