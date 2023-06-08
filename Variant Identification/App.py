@@ -18,7 +18,6 @@ variant_handler = VariantHandler(db_connection)
 variant_api = VariantAPI(variant_handler)
 route_handler = RouteHandler(variant_api)
 
-# Define the routes using the route_handler's methods
 @app.route('/')
 def home_page():
     return route_handler.home_page()
@@ -34,10 +33,6 @@ def get_variant_id():
 @app.route('/variant/add', methods=['POST'])
 def add_variant():
     return route_handler.add_variant()
-
-
-
-# Define other routes...
 
 if __name__ == '__main__':
     app.run(debug=True)
