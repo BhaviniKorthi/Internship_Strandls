@@ -16,6 +16,7 @@ config = {
 db_connection = mysql.connector.connect(**config)
 variant_handler = VariantHandler(db_connection)
 variant_handler.create_table()
+variant_handler.load_data()
 variant_api = VariantAPI(variant_handler)
 route_handler = RouteHandler(variant_api)
 
