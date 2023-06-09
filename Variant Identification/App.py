@@ -2,6 +2,7 @@ from flask import Flask
 from Model.model import VariantHandler
 from View.view import VariantAPI
 from Controller.controller import RouteHandler
+from Data_populate import Populate
 import mysql.connector
 
 app = Flask(__name__)
@@ -16,7 +17,8 @@ config = {
 db_connection = mysql.connector.connect(**config)
 variant_handler = VariantHandler(db_connection)
 variant_handler.create_table()
-variant_handler.load_data()
+data = Populate(db_connection)
+data.load_data()
 variant_api = VariantAPI(variant_handler)
 route_handler = RouteHandler(variant_api)
 
