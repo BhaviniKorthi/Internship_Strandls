@@ -101,10 +101,6 @@ class VariantHandler:
         variant_info_str = json.dumps(variant_info)
         variant_hash = hashlib.md5(variant_info_str.encode()).hexdigest()
 
-        variant_id = self.redis_client.get(f'variant_hash:{variant_hash}')
-        if variant_id:
-            return variant_id, "already exists"
-
         check_query = "SELECT variant_id FROM variants WHERE variant_hash = %s"
         insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, %s)"
         db_cursor = self.db_connection.cursor(dictionary=True)
@@ -118,12 +114,9 @@ class VariantHandler:
                 db_cursor.execute(collision_query, (variant_id,))
                 fetched_variant_info = db_cursor.fetchone()
                 if fetched_variant_info and json.loads(fetched_variant_info['variant_info']) == variant_info:
-                    self.redis_client.set(f'variant_hash:{variant_hash}', variant_id)
                     return variant_id, "already exists"
 
         db_cursor.execute(insert_query, (variant_info_str, variant_hash))
         self.db_connection.commit()
         variant_id = db_cursor.lastrowid
-        self.redis_client.set(f'variant_hash:{variant_hash}', variant_id)
         return variant_id, "added"
-g
