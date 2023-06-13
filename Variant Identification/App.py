@@ -30,11 +30,11 @@ route_handler = RouteHandler(variant_api)
 def home_page():
     return route_handler.home_page()
 
-@app.route('/variant/id', methods=['POST'])
+@app.route('/variant/id', methods=['GET'])
 def get_variant_info():
     return route_handler.get_variant_info()
 
-@app.route('/variant/info', methods=['POST'])
+@app.route('/variant/info', methods=['GET'])
 def get_variant_id():
     return route_handler.get_variant_id()
 

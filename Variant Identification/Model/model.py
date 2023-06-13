@@ -1,4 +1,7 @@
 from Model.variant_dao import VariantDAO
+import hashlib
+import json
+
 
 class VariantHandler:
     def __init__(self, db_connection, redis_client):
@@ -12,34 +15,38 @@ class VariantHandler:
     def get_variant_by_id(self, variant_id):
         variant_info = self.redis_client.get(f'variant:{variant_id}')
         if variant_info:
-            try:
-                return variant_info.decode('utf-8')
-            except:
-                return variant_info
-
-        variant_dto = self.variant_dao.select_variant_by_id(variant_id)
+            return variant_info.decode('utf-8')
+            
+        variant_dto = self.variant_dao.variant_info_by_id(variant_id)
 
         if variant_dto:
             variant_info = variant_dto.variant_info
             self.redis_client.set(f'variant:{variant_id}', variant_info)
-            try:
-                return variant_info.decode('utf-8')
-            except:
-                return variant_info
-        else:
-            return None
+            return variant_info
+        
+        return None
 
     def get_variant_by_info(self, variant_info):
-        variant_dto = self.variant_dao.select_variant_by_info(variant_info)
+        variant_info_str = json.dumps(variant_info)
+        variant_hash = hashlib.md5(variant_info_str.encode()).hexdigest()
+
+        variant_id = self.redis_client.get(f'variant:{variant_hash}')
+        if variant_id:
+            return variant_id.decode('utf-8')
+        
+        variant_dto = self.variant_dao.variant_id_by_info(variant_info_str)
 
         if variant_dto:
             variant_id = variant_dto.variant_id
+            self.redis_client.set(f'variant:{variant_hash}', variant_id)
             return variant_id
 
         return None
 
+
     def add_variant(self, variant_info):
-        variant_dto = self.variant_dao.insert_variant(variant_info)
+        variant_info_str = json.dumps(variant_info)
+        variant_dto = self.variant_dao.insert_variant(variant_info_str)
 
         if variant_dto.variant_info == "already exists":
             return variant_dto.variant_id, "already exists"

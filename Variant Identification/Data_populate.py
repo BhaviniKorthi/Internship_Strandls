@@ -14,7 +14,6 @@ class Populate:
         db_cursor = self.db_connection.cursor(dictionary=True)
         db_cursor.execute(query)
         check = db_cursor.fetchone()
-        print(check)
         if check['count'] == 0:
             count = 100
             insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, MD5(%s))"

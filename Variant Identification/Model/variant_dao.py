@@ -3,16 +3,44 @@ import hashlib
 from Model.variant_dto import VariantDTO
 
 class VariantDAO:
+    TABLE_NAME = "variants"
+    COLUMN_VARIANT_ID = "variant_id"
+    COLUMN_VARIANT_INFO = "variant_info"
+    COLUMN_VARIANT_HASH = "variant_hash"
+
     def __init__(self, db_connection):
         self.db_connection = db_connection
 
+    def connect(self, query, data):
+        db_cursor = self.db_connection.cursor(dictionary=True)
+        db_cursor.execute(query, data)
+        result = db_cursor.fetchall()
+        db_cursor.close()
+        return result
+    
+    def collision_handler(self, results, variant_info):
+        if results:
+            for result in results:
+                variant_id = result[self.COLUMN_VARIANT_ID]
+                query = f"SELECT {self.COLUMN_VARIANT_INFO} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_ID} = %s"
+                db_cursor = self.db_connection.cursor(dictionary=True)
+                db_cursor.execute(query, (variant_id,))
+                fetched_variant_info = db_cursor.fetchone()
+                db_cursor.close()
+
+                if fetched_variant_info and json.loads(fetched_variant_info[self.COLUMN_VARIANT_INFO]) == variant_info:
+                    return variant_id
+        return None
+
+
+
     def create_table(self):
-        create_table_query = """
-            CREATE TABLE IF NOT EXISTS variants (
-                variant_id INT PRIMARY KEY AUTO_INCREMENT,
-                variant_info JSON,
-                variant_hash VARCHAR(32),
-                INDEX idx_variant_hash (variant_hash)
+        create_table_query = f"""
+            CREATE TABLE IF NOT EXISTS {self.TABLE_NAME} (
+                {self.COLUMN_VARIANT_ID} INT PRIMARY KEY AUTO_INCREMENT,
+                {self.COLUMN_VARIANT_INFO} JSON,
+                {self.COLUMN_VARIANT_HASH} VARCHAR(32),
+                INDEX idx_variant_hash ({self.COLUMN_VARIANT_HASH})
             )
         """
         db_cursor = self.db_connection.cursor()
@@ -20,79 +48,35 @@ class VariantDAO:
         self.db_connection.commit()
         db_cursor.close()
 
-    def select_variant_by_id(self, variant_id):
-        query = "SELECT variant_info AS info FROM variants WHERE variant_id = %s"
-        db_cursor = self.db_connection.cursor(dictionary=True)
-        db_cursor.execute(query, (variant_id,))
-        result = db_cursor.fetchone()
-        db_cursor.close()
+    def variant_info_by_id(self, variant_id):
+        query = f"SELECT {self.COLUMN_VARIANT_INFO} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_ID} = %s"
+        result = self.connect(query, (variant_id,))
 
         if result:
-            variant_info = result['info']
+            variant_info = result[0][self.COLUMN_VARIANT_INFO]
             return VariantDTO(variant_id, variant_info)
         else:
             return None
 
-    def select_variant_by_info(self, variant_info):
-        variant_info_str = json.dumps(variant_info)
-        variant_hash = hashlib.md5(variant_info_str.encode()).hexdigest()
-
-        query = "SELECT variant_id FROM variants WHERE variant_hash = %s"
-        db_cursor = self.db_connection.cursor(dictionary=True)
-        db_cursor.execute(query, (variant_hash,))
-        results = db_cursor.fetchall()
-        db_cursor.close()
-
-        if results:
-            if len(results) == 1:
-                variant_id = results[0]['variant_id']
-                check_query = "SELECT variant_info FROM variants WHERE variant_id = %s"
-                db_cursor = self.db_connection.cursor(dictionary=True)
-                db_cursor.execute(check_query, (variant_id,))
-                if db_cursor.fetchone()['variant_info'] == variant_info_str:
-                    db_cursor.close()
-                    return VariantDTO(variant_id, variant_info)
-                else:
-                    return None
-            elif len(results) > 1:
-                for result in results:
-                    variant_id = result['variant_id']
-                    query = "SELECT variant_info FROM variants WHERE variant_id = %s"
-                    db_cursor = self.db_connection.cursor(dictionary=True)
-                    db_cursor.execute(query, (variant_id,))
-                    fetched_variant_info = db_cursor.fetchone()
-                    db_cursor.close()
-
-                    if fetched_variant_info and json.loads(fetched_variant_info['variant_info']) == variant_info:
-                        return VariantDTO(variant_id, variant_info)
-
+    def variant_id_by_info(self, variant_info):
+        query = f"SELECT {self.COLUMN_VARIANT_ID} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} = MD5(%s)"
+       
+        results = self.connect(query, (variant_info, ))
+        variant_id = self.collision_handler(results, variant_info)
+        if variant_id:
+            return VariantDTO(variant_id, variant_info)
         return None
 
     def insert_variant(self, variant_info):
-        variant_info_str = json.dumps(variant_info)
-        variant_hash = hashlib.md5(variant_info_str.encode()).hexdigest()
+        query = f"SELECT {self.COLUMN_VARIANT_ID} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} = MD5(%s)"
+        results = self.connect(query, (variant_info, ))
+        variant_id = self.collision_handler(results, variant_info)
+        if variant_id:
+            return VariantDTO(variant_id, "already exists")
 
-        query = "SELECT variant_id FROM variants WHERE variant_hash = %s"
+        insert_query = f"INSERT INTO {self.TABLE_NAME} ({self.COLUMN_VARIANT_INFO}, {self.COLUMN_VARIANT_HASH}) VALUES (%s, MD5(%s))"
         db_cursor = self.db_connection.cursor(dictionary=True)
-        db_cursor.execute(query, (variant_hash,))
-        result = db_cursor.fetchall()
-        db_cursor.close()
-
-        if result:
-            for row in result:
-                variant_id = row['variant_id']
-                query = "SELECT variant_info FROM variants WHERE variant_id = %s"
-                db_cursor = self.db_connection.cursor(dictionary=True)
-                db_cursor.execute(query, (variant_id,))
-                fetched_variant_info = db_cursor.fetchone()
-                db_cursor.close()
-
-                if fetched_variant_info and json.loads(fetched_variant_info['variant_info']) == variant_info:
-                    return VariantDTO(variant_id, "already exists")
-
-        insert_query = "INSERT INTO variants (variant_info, variant_hash) VALUES (%s, %s)"
-        db_cursor = self.db_connection.cursor(dictionary=True)
-        db_cursor.execute(insert_query, (variant_info_str, variant_hash))
+        db_cursor.execute(insert_query, (variant_info, variant_info))
         self.db_connection.commit()
         variant_id = db_cursor.lastrowid
         db_cursor.close()
