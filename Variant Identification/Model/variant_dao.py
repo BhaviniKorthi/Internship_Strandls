@@ -46,7 +46,14 @@ class VariantDAO:
         if results:
             if len(results) == 1:
                 variant_id = results[0]['variant_id']
-                return VariantDTO(variant_id, variant_info)
+                check_query = "SELECT variant_info FROM variants WHERE variant_id = %s"
+                db_cursor = self.db_connection.cursor(dictionary=True)
+                db_cursor.execute(check_query, (variant_id,))
+                if db_cursor.fetchone()['variant_info'] == variant_info_str:
+                    db_cursor.close()
+                    return VariantDTO(variant_id, variant_info)
+                else:
+                    return None
             elif len(results) > 1:
                 for result in results:
                     variant_id = result['variant_id']
