@@ -17,8 +17,8 @@ class VariantAPI:
 
     def find_variant(self, variant_info):
         variant_dto = self.variant_handler.get_variant_by_info(variant_info)
-        # if variant_dto is None:
-        #     return jsonify({'error': 'Variant info not found'})
+        if variant_dto is None:
+            return jsonify({'error': 'Variant info not found'})
         
         return render_template('variant.html', variant_id=variant_dto.variant_id, variant_info=variant_dto.variant_info,
                                    Message=variant_dto.Message)
