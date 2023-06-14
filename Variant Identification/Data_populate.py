@@ -1,5 +1,3 @@
-import mysql.connector
-import hashlib
 import json
 
 
@@ -28,10 +26,6 @@ class Populate:
 
                 db_cursor.execute(check_query, (variant_info,))
                 count = db_cursor.fetchall()
-
-                result = db_cursor.fetchone()
-                # print(result)
-
                 if len(count)>0:
                     continue
                 else:

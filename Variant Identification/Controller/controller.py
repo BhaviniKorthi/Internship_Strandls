@@ -17,7 +17,7 @@ class RouteHandler:
             variant_id = int(variant_id)
             return self.variant_api.get_variant(variant_id)
         except ValueError:
-            return jsonify({'error': 'Invalid variant ID'})
+            return jsonify({'error': 'Invalid input format'})
         
 
 

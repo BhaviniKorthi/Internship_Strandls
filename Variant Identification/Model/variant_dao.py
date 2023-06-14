@@ -1,5 +1,4 @@
 import json
-import hashlib
 from Model.variant_dto import VariantDTO
 
 class VariantDAO:
@@ -8,15 +7,21 @@ class VariantDAO:
     COLUMN_VARIANT_INFO = "variant_info"
     COLUMN_VARIANT_HASH = "variant_hash"
 
+
+
     def __init__(self, db_connection):
         self.db_connection = db_connection
 
-    def connect(self, query, data):
+
+
+    def db_connect(self, query, data):
         db_cursor = self.db_connection.cursor(dictionary=True)
         db_cursor.execute(query, data)
         result = db_cursor.fetchall()
         db_cursor.close()
         return result
+    
+
     
     def collision_handler(self, results, variant_info):
         if results:
@@ -28,7 +33,7 @@ class VariantDAO:
                 fetched_variant_info = db_cursor.fetchone()
                 db_cursor.close()
 
-                if fetched_variant_info and json.loads(fetched_variant_info[self.COLUMN_VARIANT_INFO]) == variant_info:
+                if fetched_variant_info and fetched_variant_info[self.COLUMN_VARIANT_INFO] == variant_info:
                     return variant_id
         return None
 
@@ -48,31 +53,38 @@ class VariantDAO:
         self.db_connection.commit()
         db_cursor.close()
 
+
+
     def variant_info_by_id(self, variant_id):
         query = f"SELECT {self.COLUMN_VARIANT_INFO} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_ID} = %s"
-        result = self.connect(query, (variant_id,))
+        result = self.db_connect(query, (variant_id,))
 
         if result:
             variant_info = result[0][self.COLUMN_VARIANT_INFO]
-            return VariantDTO(variant_id, variant_info)
+            return VariantDTO(variant_id, variant_info, "Variant info found")
         else:
             return None
 
+
+
     def variant_id_by_info(self, variant_info):
         query = f"SELECT {self.COLUMN_VARIANT_ID} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} = MD5(%s)"
-       
-        results = self.connect(query, (variant_info, ))
+        results = self.db_connect(query, (variant_info, ))
+
         variant_id = self.collision_handler(results, variant_info)
+        
         if variant_id:
-            return VariantDTO(variant_id, variant_info)
+            return VariantDTO(variant_id, variant_info, "Variant ID found")
         return None
+    
+
 
     def insert_variant(self, variant_info):
         query = f"SELECT {self.COLUMN_VARIANT_ID} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} = MD5(%s)"
-        results = self.connect(query, (variant_info, ))
+        results = self.db_connect(query, (variant_info, ))
         variant_id = self.collision_handler(results, variant_info)
         if variant_id:
-            return VariantDTO(variant_id, "already exists")
+            return VariantDTO(variant_id, variant_info ,"already exists")
 
         insert_query = f"INSERT INTO {self.TABLE_NAME} ({self.COLUMN_VARIANT_INFO}, {self.COLUMN_VARIANT_HASH}) VALUES (%s, MD5(%s))"
         db_cursor = self.db_connection.cursor(dictionary=True)
@@ -80,4 +92,4 @@ class VariantDAO:
         self.db_connection.commit()
         variant_id = db_cursor.lastrowid
         db_cursor.close()
-        return VariantDTO(variant_id, "added")
+        return VariantDTO(variant_id, variant_info, "added")
