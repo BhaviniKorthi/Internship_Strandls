@@ -2,58 +2,27 @@
 <html>
 <head>
     <title>Variant Information</title>
-    <link rel="stylesheet" type="text/css" href="../static/index.css">
-    <!-- <script src="../scripts/script.js"></script> -->
-    <script>
-        function addInput(containerId, inputName, placeholderText) {
-            var inputContainer = document.createElement("div");
-            inputContainer.classList.add("input-container");
-
-            var inputField = document.createElement("input");
-            inputField.type = "text";
-            inputField.name = inputName;
-            inputField.placeholder = "Enter " + placeholderText;
-
-            var removeButton = document.createElement("button");
-            removeButton.innerHTML = "-";
-            removeButton.type = "button";
-            removeButton.classList.add("remove-input-button");
-            removeButton.onclick = function () {
-                inputContainer.remove();
-            };
-
-            inputContainer.appendChild(inputField);
-            inputContainer.appendChild(removeButton);
-
-            document.getElementById(containerId).appendChild(inputContainer);
-        }
-    </script>
+    <link rel="stylesheet"  href="{{url_for('static', filename='index.css')}}">
 </head>
 <body>
     <h1>Get Variant Information</h1>
     <div class="forms-container">
-        <form action="/variant/id" method="GET">
-            <div id="variant-id-container" class="input-container">
-                <input type="text" name="variant_id" placeholder="Enter Variant ID">
-            </div>
-            <button type="button" class="add-input-button" onclick="addInput('variant-id-container', 'variant_id','Variant ID')">+</button>
+        <form action="/single_variant/id" method="GET">
+            <label for="variant_id">Variant ID:</label>
+            <input type="text" id="variant_id" name="variant_id" placeholder="Enter Variant ID">
             <input type="submit" value="Get Variant Info">
         </form>
-        <form action="/variant/info" method="GET">
-            <div id="variant-info-container" class="input-container">
-                <input type="text" name="variant_info" placeholder="Enter Variant Info">
-            </div>
-            <button type="button" class="add-input-button" onclick="addInput('variant-info-container', 'variant_info', 'Variant Info')">+</button>
+        <form action="/single_variant/info" method="GET">
+            <label for="variant_info">Variant Info:</label>
+            <input type="text" id="variant_info" name="variant_info" placeholder="Enter Variant Info">
             <input type="submit" value="Get Variant ID">
         </form>
     </div>
 
     <h1 style="margin-bottom: 0px;">Add Variant Information</h1>
-    <form action="/variant/add" method="POST">
-        <div id="add-entry-container" class="input-container">
-            <input type="text" name="add_entry" placeholder="Enter Variant Info">
-        </div>
-        <button type="button" class="add-input-button" onclick="addInput('add-entry-container', 'add_entry', 'Variant Info')">+</button>
+    <form action="/single_variant/info" method="POST">
+        <label for="add_entry">Add Info:</label>
+        <input type="text" id="add_entry" name="add_entry" placeholder="Enter Variant Info">
         <input type="submit" value="Add Variant Info">
     </form>
 </body>

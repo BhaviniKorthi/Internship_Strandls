@@ -1,13 +1,10 @@
 import enum
 import json
 from Model.variant_dto import VariantDTO
-import hashlib
-
 
 class ResultType(enum.Enum):
     FETCHALL = "fetchall"
     LASTROWID = "lastrowid"
-
 
 class VariantDAO:
     TABLE_NAME = "variants"
@@ -25,8 +22,21 @@ class VariantDAO:
             result = db_cursor.fetchall()
         elif result_type == ResultType.LASTROWID:
             result = db_cursor.lastrowid
+        db_cursor.close()
         return result
-
+    
+    def collision_handler(self, results, variant_info):
+        if results:
+            for result in results:
+                variant_id = result[self.COLUMN_VARIANT_ID]
+                query = f"SELECT {self.COLUMN_VARIANT_INFO} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_ID} = %s"
+                db_cursor = self.db_connection.cursor(dictionary=True)
+                db_cursor.execute(query, (variant_id,))
+                fetched_variant_info = db_cursor.fetchone()
+                db_cursor.close()
+                if fetched_variant_info and fetched_variant_info[self.COLUMN_VARIANT_INFO] == variant_info:
+                    return variant_id
+        return None
 
     def create_table(self):
         create_table_query = f"""
@@ -42,50 +52,29 @@ class VariantDAO:
         self.db_connection.commit()
         db_cursor.close()
 
-        
-    def variant_info_by_ids(self, variant_ids):
-        placeholders = ', '.join(['%s'] * len(variant_ids))
-        query = f"SELECT {self.COLUMN_VARIANT_ID} as id, {self.COLUMN_VARIANT_INFO} as info FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_ID} IN ({placeholders})"
-        result = self.db_connect(query, variant_ids, ResultType.FETCHALL)
-        variant_dtos = []
-        for row in result:
-            variant_id = row["id"]
-            variant_info = row["info"]
-            variant_dtos.append(VariantDTO(variant_id, variant_info, "Variant info found"))
-            
-        return variant_dtos
+    def variant_info_by_id(self, variant_id):
+        query = f"SELECT {self.COLUMN_VARIANT_INFO} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_ID} = %s"
+        result = self.db_connect(query, (variant_id,), ResultType.FETCHALL)
+        if result:
+            variant_info = result[0][self.COLUMN_VARIANT_INFO]
+            return VariantDTO(variant_id, variant_info, "Variant info found")
+        else:
+            return None
 
+    def variant_id_by_info(self, variant_info):
+        query = f"SELECT {self.COLUMN_VARIANT_ID} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} = MD5(%s)"
+        results = self.db_connect(query, (variant_info, ), ResultType.FETCHALL)
+        variant_id = self.collision_handler(results, variant_info)
+        if variant_id:
+            return VariantDTO(variant_id, variant_info, "Variant ID found")
+        return None
 
-
-    def variant_id_by_infos(self, variant_infos):
-        placeholders = ', '.join(['MD5(%s)'] * len(variant_infos))
-        query = f"SELECT {self.COLUMN_VARIANT_ID}, {self.COLUMN_VARIANT_INFO} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} IN ({placeholders})"
-        results = self.db_connect(query, variant_infos, ResultType.FETCHALL)
-        variant_info_map = {result[self.COLUMN_VARIANT_INFO]: result[self.COLUMN_VARIANT_ID] for result in results}
-        variant_dtos =[]
-        for variant_info in variant_infos:
-            if variant_info not in variant_info_map:
-                variant_dtos.append(VariantDTO(None, variant_info, "Variant ID not found"))
-            else:
-                variant_dtos.append(VariantDTO(variant_info_map[variant_info], variant_info, "Variant ID found"))
-        
-        return variant_dtos
-
-
-    def insert_variants(self, variant_infos):
-        placeholders = ', '.join(['MD5(%s)'] * len(variant_infos))
-        query = f"SELECT {self.COLUMN_VARIANT_ID}, {self.COLUMN_VARIANT_INFO} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} IN ({placeholders})"
-        results = self.db_connect(query, variant_infos, ResultType.FETCHALL)
-        variant_info_map = {result[self.COLUMN_VARIANT_INFO]: result[self.COLUMN_VARIANT_ID] for result in results}
-      
-        variant_dto_list = []
-        for variant_info in variant_infos:
-            if variant_info in variant_info_map:
-                variant_dto_list.append(VariantDTO(variant_info_map[variant_info], variant_info, "already exists"))
-            else:
-                insert_query = f"INSERT INTO {self.TABLE_NAME} ({self.COLUMN_VARIANT_INFO}, {self.COLUMN_VARIANT_HASH}) VALUES (%s, MD5(%s))"
-                inserted_variant_id = self.db_connect(insert_query, (variant_info, variant_info), ResultType.LASTROWID)
-                variant_dto_list.append(VariantDTO(inserted_variant_id, variant_info, "added"))
-        return variant_dto_list
-
-        
+    def insert_variant(self, variant_info):
+        query = f"SELECT {self.COLUMN_VARIANT_ID} FROM {self.TABLE_NAME} WHERE {self.COLUMN_VARIANT_HASH} = MD5(%s)"
+        results = self.db_connect(query, (variant_info, ), ResultType.FETCHALL)
+        variant_id = self.collision_handler(results, variant_info)
+        if variant_id:
+            return VariantDTO(variant_id, variant_info ,"already exists")
+        insert_query = f"INSERT INTO {self.TABLE_NAME} ({self.COLUMN_VARIANT_INFO}, {self.COLUMN_VARIANT_HASH}) VALUES (%s, MD5(%s))"
+        variant_id = self.db_connect(insert_query, (variant_info, variant_info), ResultType.LASTROWID)
+        return VariantDTO(variant_id, variant_info, "added")
