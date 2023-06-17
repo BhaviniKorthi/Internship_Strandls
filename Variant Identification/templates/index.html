@@ -7,12 +7,12 @@
 <body>
     <h1>Get Variant Information</h1>
     <div class="forms-container">
-        <form action="/variant/id" method="GET">
+        <form action="/single_variant/id" method="GET">
             <label for="variant_id">Variant ID:</label>
             <input type="text" id="variant_id" name="variant_id" placeholder="Enter Variant ID">
             <input type="submit" value="Get Variant Info">
         </form>
-        <form action="/variant/info" method="GET">
+        <form action="/single_variant/info" method="GET">
             <label for="variant_info">Variant Info:</label>
             <input type="text" id="variant_info" name="variant_info" placeholder="Enter Variant Info">
             <input type="submit" value="Get Variant ID">
@@ -20,7 +20,7 @@
     </div>
 
     <h1 style="margin-bottom: 0px;">Add Variant Information</h1>
-    <form action="/variant/add" method="POST">
+    <form action="/single_variant/info" method="POST">
         <label for="add_entry">Add Info:</label>
         <input type="text" id="add_entry" name="add_entry" placeholder="Enter Variant Info">
         <input type="submit" value="Add Variant Info">

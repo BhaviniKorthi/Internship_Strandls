@@ -5,8 +5,11 @@
 </head>
 <body>
     <h1>Variant Information</h1>
-    <p><strong>Variant ID:</strong> {{ variant_id }}</p>
-    <p><strong>Variant Info:</strong> {{ variant_info }}</p>
-    <p><strong>Message:</strong> {{ Message }}</p>
+    {% for variant in variant_results %}
+        <p>Variant ID: {{ variant.variant_id }}</p>
+        <p>Variant Info: {{ variant.variant_info }}</p>
+        <p>Message: {{ variant.Message }}</p>
+        <hr>
+    {% endfor %}
 </body>
 </html>
