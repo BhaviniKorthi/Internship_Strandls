@@ -33,7 +33,7 @@ class MultipleVariantHandler:
 
 
 
-    def get_variant_by_info(self, variant_infos):
+    def get_variant_by_info(self, variant_infos, start, end):
         variant_dtos = []
         variant_infos_to_query = []
         for variant_info in variant_infos:
@@ -52,10 +52,8 @@ class MultipleVariantHandler:
                 variant_hash = hashlib.md5(variant_dto.variant_info.encode()).hexdigest()
                 self.redis_client.set(f'variant:{variant_hash}', variant_dto.variant_id)
                 variant_dtos.append(variant_dto)
-      
-        return variant_dtos
-
-
+        accepted_variant_dtos=[variant_dto for variant_dto in variant_dtos if int(variant_dto.variant_id) in range(start, end+1)]     
+        return accepted_variant_dtos
 
 
 
