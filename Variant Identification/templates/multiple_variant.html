@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Variant Information</title>
+</head>
+<body>
+    <h1>Variant Information</h1>
+    {% for variant in variant_results %}
+        <p>Variant ID: {{ variant.variant_id }}</p>
+        <p>Variant Info: {{ variant.variant_info }}</p>
+        <p>Message: {{ variant.Message }}</p>
+        <hr>
+    {% endfor %}
+</body>
+</html>

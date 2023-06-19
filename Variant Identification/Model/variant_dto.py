@@ -3,3 +3,4 @@ class VariantDTO:
         self.variant_id = variant_id
         self.variant_info = variant_info
         self.Message = message 
+ 

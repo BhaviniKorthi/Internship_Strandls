@@ -18,12 +18,11 @@ class VariantHandler:
         variant_info = self.redis_client.get(f'variant:{variant_id}')
         if variant_info:
             variant_dto = VariantDTO(variant_id, variant_info.decode('utf-8'), "Variant ID found")
-            return [variant_dto]
+            return variant_dto
         variant_dto = self.variant_dao.variant_info_by_id(variant_id)
-        if variant_dto:
-            variant_info = variant_dto.variant_info
-            self.redis_client.set(f'variant:{variant_id}', variant_info)
-        return [variant_dto]
+        if variant_dto.variant_info:
+            self.redis_client.set(f'variant:{variant_id}', variant_dto.variant_info)
+        return variant_dto
 
     def get_variant_by_info(self, variant_info):
         variant_info_str = json.dumps(variant_info)
@@ -32,20 +31,14 @@ class VariantHandler:
         variant_id = self.redis_client.get(f'variant:{variant_hash}')
         if variant_id:
             variant_dto = VariantDTO(variant_id.decode('utf-8'), variant_info, "Variant info found")
-            return [variant_dto]
-        
+            return variant_dto
         variant_dto = self.variant_dao.variant_id_by_info(variant_info_str)
-
-        if variant_dto:
+        if variant_dto.variant_id:
             variant_id = variant_dto.variant_id
             self.redis_client.set(f'variant:{variant_hash}', variant_id)
-        
-        return [variant_dto]
+        return variant_dto
 
     def add_variant(self, variant_info):
         variant_info_str = json.dumps(variant_info)
         variant_dto = self.variant_dao.insert_variant(variant_info_str)
-
-    
-
-        return [variant_dto]
+        return variant_dto

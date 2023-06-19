@@ -5,6 +5,7 @@ from Model.multiple_model import MultipleVariantHandler
 from View.view import VariantAPI
 from Controller.multiple_controller import MultipleRouteHandler
 from Controller.controller import RouteHandler
+from Table_creation import Table    
 from Data_populate import Populate
 import mysql.connector
 import redis
@@ -22,6 +23,8 @@ db_connection = mysql.connector.connect(**config)
 redis_pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
 redis_client = redis.Redis(connection_pool=redis_pool)
 
+table = Table(db_connection)
+table.create_table()
 data = Populate(db_connection)
 data.load_data()
 

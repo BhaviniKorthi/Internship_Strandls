@@ -14,7 +14,6 @@ class MultipleVariantHandler:
     def get_variant_by_id(self, variant_ids):
         variant_dtos = []
         variant_ids_to_query = []
-        print(variant_ids)
         for variant_id in variant_ids:
             variant_info = self.redis_client.get(f'variant:{variant_id}')
             if variant_info:
@@ -28,10 +27,8 @@ class MultipleVariantHandler:
             variant_infos_from_sql = self.variant_dao.variant_info_by_ids(variant_ids_to_query)
             for variant_dto in variant_infos_from_sql:
                 variant_dtos.append(variant_dto)
-                
-                self.redis_client.set(f'variant:{variant_dto.variant_id}', variant_dto.variant_info)
-
-        print(variant_dtos)
+                if variant_dto.variant_info:
+                    self.redis_client.set(f'variant:{variant_dto.variant_id}', variant_dto.variant_info)
         return variant_dtos
 
 

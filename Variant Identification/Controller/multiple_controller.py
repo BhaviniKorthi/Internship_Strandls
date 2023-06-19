@@ -1,6 +1,6 @@
 from flask import render_template, jsonify, request
 import json
-from View.view import VariantAPI
+from View.multiple_view import VariantAPI
 
 class MultipleRouteHandler:
     def __init__(self, db_connection, redis_client):

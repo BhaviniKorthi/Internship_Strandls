@@ -13,7 +13,6 @@ class RouteHandler:
 
     def get_variant_info(self):
         variant_id = request.args.get('variant_id')
-        print(variant_id, "single")
         if not variant_id:
             return jsonify({'error': 'Empty input is not allowed'})
         

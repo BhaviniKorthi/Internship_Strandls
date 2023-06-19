@@ -25,21 +25,6 @@ class VariantDAO:
             result = db_cursor.lastrowid
         return result
 
-
-    def create_table(self):
-        create_table_query = f"""
-            CREATE TABLE IF NOT EXISTS {self.TABLE_NAME} (
-                {self.COLUMN_VARIANT_ID} INT PRIMARY KEY AUTO_INCREMENT,
-                {self.COLUMN_VARIANT_INFO} JSON,
-                {self.COLUMN_VARIANT_HASH} VARCHAR(32),
-                INDEX idx_variant_hash ({self.COLUMN_VARIANT_HASH})
-            )
-        """
-        db_cursor = self.db_connection.cursor()
-        db_cursor.execute(create_table_query)
-        self.db_connection.commit()
-        db_cursor.close()
-
         
     def variant_info_by_ids(self, variant_ids):
         placeholders = ', '.join(['%s'] * len(variant_ids))
@@ -51,7 +36,7 @@ class VariantDAO:
             if id not in variant_id_map:
                 variant_dtos.append(VariantDTO(id, None, "Variant info not found"))
             else:
-                variant_dtos.append(VariantDTO(id, variant_id_map[id], "Variant info found"))    
+                variant_dtos.append(VariantDTO(id, variant_id_map[id], "Variant info found"))   
         return variant_dtos
 
 
@@ -85,6 +70,7 @@ class VariantDAO:
                 insert_query = f"INSERT INTO {self.TABLE_NAME} ({self.COLUMN_VARIANT_INFO}, {self.COLUMN_VARIANT_HASH}) VALUES (%s, MD5(%s))"
                 inserted_variant_id = self.db_connect(insert_query, (variant_info, variant_info), ResultType.LASTROWID)
                 variant_dto_list.append(VariantDTO(inserted_variant_id, variant_info, "added"))
+                variant_info_map[variant_info] = inserted_variant_id
         return variant_dto_list
 
         
