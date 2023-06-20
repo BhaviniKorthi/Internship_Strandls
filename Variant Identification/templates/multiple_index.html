@@ -52,8 +52,6 @@
             <div class="index-container">
                 <input type="number" name="page" placeholder="Page" min="1" step="1">
                 <input type="number" name="items_per_page" placeholder="Items per Page" min="1" step="1">
-                <input type="number" name="start" placeholder="Start Index" min="1" step="1">
-                <input type="number" name="end" placeholder="End Index" min="1" step="1">
             </div>
             <button type="button" class="add-input-button" onclick="addInput('variant-info-container', 'variant_info', 'Variant Info')">+</button>
             <input type="submit" value="Get Variant ID">
@@ -64,10 +62,6 @@
     <form action="/multiple_variants/info" method="POST">
         <div id="add-entry-container" class="input-container">
             <input type="text" name="add_entry" placeholder="Enter Variant Info">
-        </div>
-        <div class="index-container">
-            <input type="number" name="start" placeholder="Start Index" min="1" step="1">
-            <input type="number" name="end" placeholder="End Index" min="1" step="1">
         </div>
         <button type="button" class="add-input-button" onclick="addInput('add-entry-container', 'add_entry', 'Variant Info')">+</button>
         <input type="submit" value="Add Variant Info">

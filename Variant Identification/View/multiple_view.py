@@ -9,16 +9,14 @@ class VariantAPI:
 
     def get_info(self, variant_id):
         variant_dto = self.multiple_variant_handler.get_variant_by_id(variant_id)
-        # print([variant_dto.variant_id for variant_dto in variant_dto])
-        print(render_template('multiple_variant.html', variant_results=variant_dto, page=True))
         return render_template('multiple_variant.html', variant_results=variant_dto, page=True)
     
 
     
 
-    def get_id(self, variant_info, start, end):
-        variant_dto = self.multiple_variant_handler.get_variant_by_info(variant_info, start, end)       
-        return render_template('multiple_variant.html', variant_results = variant_dto)
+    def get_id(self, variant_info):
+        variant_dto = self.multiple_variant_handler.get_variant_by_info(variant_info)       
+        return render_template('multiple_variant.html', variant_results = variant_dto, page=True)
 
 
     def add_variant(self, variant_info):
